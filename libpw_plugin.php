@@ -41,15 +41,21 @@ if(!class_exists('libpw_Plugin_Substance')){
         private $value;
         private $default;
         private $counter;
+        private $key;
 
         const CIPHER = 'rijndael-128';
         const MODE   = 'cbc';
 
-        public function __construct($unique, $default = array()) {
+        public function __construct($unique, $default = array(), $key = null) {
             parent::__construct($unique);
             $this->value   = $default;
             $this->default = $default;
             $this->counter = 0;
+            if(is_null($key) || $key == ''){
+                $this->key = $this->unique;
+            }else{
+                $this->key = $key;
+            }
         }
 
         public function init() {
@@ -116,7 +122,8 @@ if(!class_exists('libpw_Plugin_Substance')){
             // mcryptで暗号化の準備
             $iv_size  = mcrypt_get_iv_size(self::CIPHER, self::MODE);
             $iv       = mcrypt_create_iv($iv_size, MCRYPT_DEV_URANDOM);
-            $key      = substr($this->unique, 0, $iv_size);
+            //$key      = substr($this->unique, 0, $iv_size);
+            $key      = substr($this->key, 0, $iv_size);
             $dummy_iv = str_pad($key, $iv_size, $key);
 
             // msg暗号化
@@ -140,7 +147,8 @@ if(!class_exists('libpw_Plugin_Substance')){
             $cval     = base64_decode($crypt[0]);
             $civ      = base64_decode($crypt[1]);
             $iv_size  = mcrypt_get_iv_size(self::CIPHER, self::MODE);
-            $key      = substr($this->unique, 0, $iv_size);
+            //$key      = substr($this->unique, 0, $iv_size);
+            $key      = substr($this->key, 0, $iv_size);
             $dummy_iv = str_pad($key, $iv_size, $key);
             $iv       = base64_decode(rtrim(mcrypt_decrypt(self::CIPHER, $key, $civ, self::MODE, $dummy_iv), "\0"));
             return unserialize(base64_decode(rtrim(mcrypt_decrypt(self::CIPHER, $key, $cval, self::MODE, $iv), "\0")));
